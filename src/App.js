@@ -1,11 +1,32 @@
+import React, { useState } from 'react';
+import ReactDOM from 'react-dom';
+import axios from 'axios';
 
-import './App.css';
-import Routes from './config/routes';
-import { useEffect, useState } from 'react';
-function App() {
-  return(
-    <Routes/>
-  )
-}
+const App = () => {
+  const [file, setFile] = useState(null);
 
-export default App;
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    axios.post('/api/upload', formData)
+      .then(res => {
+        console.log(res.data);
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+      <button onClick={handleSubmit}>Upload</button>
+    </div>
+  );
+};
+
+const rootElement = document.getElementById('root');
+ReactDOM.render(<App />, rootElement);
