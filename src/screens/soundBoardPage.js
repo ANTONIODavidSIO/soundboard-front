@@ -1,143 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import axios from 'axios';
+import Soundboard from '../components/sounboard/Soundboard';
 
-// Styled components
-const SoundboardContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
-`;
-
-const DeleteButton = styled.button`
-  background-color: red;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-`;
-
-const ConfigureKeyButton = styled.button`
-  background-color: blue;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-`;
-
-const TriggerKeySpan = styled.span`
-  color: green;
-`;
-
-const AudioPlayer = ({ file, volume }) => {
-  const handlePlay = () => {
-    const audio = new Audio(URL.createObjectURL(file));
-    audio.volume = volume / 100; // Convertir le volume en pourcentage
-    audio.play();
-  };
-
-  return (
-    <div>
-      <button onClick={handlePlay}>{file.name}</button>
-    </div>
-  );
-};
-
-const Soundboard = ({ files, onDelete, onKeyBind, triggerKey }) => {
-  const [volume, setVolume] = useState(50); // Volume initial
-
-  const handleDelete = () => {
-    onDelete();
-  };
-
-  const handleConfigureKey = () => {
-    const newKey = prompt('Veuillez entrer la touche du clavier pour déclencher cette soundboard (ex: a, b, c, etc.)');
-    if (newKey !== null && newKey !== '') {
-      onKeyBind(newKey);
-    }
-  };
-
-  const handleVolumeChange = (event) => {
-    setVolume(event.target.value);
-  };
-
-  return (
-    <SoundboardContainer>
-      <div>
-        {files.map((file, index) => (
-          <AudioPlayer key={index} file={file} volume={volume} />
-        ))}
-      </div>
-      <div>
-        <input type="range" min="0" max="100" value={volume} onChange={handleVolumeChange} />
-        <DeleteButton onClick={handleDelete}>Supprimer</DeleteButton>
-        <ConfigureKeyButton onClick={handleConfigureKey}>Configurer la touche</ConfigureKeyButton>
-        {triggerKey && <TriggerKeySpan>Touche : {triggerKey}</TriggerKeySpan>}
-      </div>
-    </SoundboardContainer>
-  );
-};
-
-const SoundBoardPage = () => {
+const SoundboardPage = () => {
   const [soundboards, setSoundboards] = useState([]);
+  const [fileInput, setFileInput] = useState(null);
 
-  const handleFileChange = (event) => {
-    const newFiles = Array.from(event.target.files);
-    setSoundboards(prevSoundboards => [...prevSoundboards, { files: newFiles, triggerKey: null }]);
+  useEffect(() => {
+    axios.get('localhost:5000/api/soundboards')
+      .then((res) => {
+        setSoundboards(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  const handleAddSoundboard = () => {
+    const formData = new FormData();
+    formData.append('file', fileInput.current.files[0]);
+
+    axios.post('localhost:5000/api/soundboards', formData)
+      .then((res) => {
+        // Mettre à jour l'état des soundboards
+        setSoundboards([...soundboards, res.data]);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   const handleDeleteSoundboard = (index) => {
-    setSoundboards(prevSoundboards => {
-      const updatedSoundboards = [...prevSoundboards];
-      updatedSoundboards.splice(index, 1);
-      return updatedSoundboards;
-    });
-  };
+    const soundboardId = soundboards[index]._id;
 
-  const handleKeyBind = (index, key) => {
-    setSoundboards(prevSoundboards => {
-      const updatedSoundboards = [...prevSoundboards];
-      updatedSoundboards[index].triggerKey = key;
-      return updatedSoundboards;
-    });
-  };
-
-  useEffect(() => {
-    const handleKeyPress = (event) => {
-      soundboards.forEach((soundboard, index) => {
-        if (soundboard.triggerKey && event.key.toLowerCase() === soundboard.triggerKey.toLowerCase()) {
-          soundboard.files.forEach(file => {
-            const audio = new Audio(URL.createObjectURL(file));
-            audio.play();
-          });
-        }
+    axios.delete(`localhost:5000/api/soundboards/${soundboardId}`)
+      .then(() => {
+        // Mettre à jour l'état des soundboards
+        const updatedSoundboards = [...soundboards];
+        updatedSoundboards.splice(index, 1);
+        setSoundboards(updatedSoundboards);
+      })
+      .catch((err) => {
+        console.log(err);
       });
-    };
-
-    window.addEventListener('keypress', handleKeyPress);
-
-    return () => {
-      window.removeEventListener('keypress', handleKeyPress);
-    };
-  }, [soundboards]);
+  };
 
   return (
     <div>
       <h1>Soundboard</h1>
-      <input type="file" onChange={handleFileChange} accept="audio/*" multiple />
-      {soundboards.map((soundboard, index) => (
-        <Soundboard
-          key={index}
-          files={soundboard.files}
-          onDelete={() => handleDeleteSoundboard(index)}
-          onKeyBind={(key) => handleKeyBind(index, key)}
-          triggerKey={soundboard.triggerKey}
-        />
-      ))}
+      <ul>
+        {soundboards.map((soundboard, index) => (
+          <li key={soundboard._id}>
+            <Soundboard
+              soundboard={soundboard}
+              onDelete={() => handleDeleteSoundboard(index)}
+            />
+          </li>
+        ))}
+      </ul>
+      <input type="file" ref={fileInput} />
+      <button onClick={handleAddSoundboard}>Ajouter une soundboard</button>
     </div>
   );
 };
 
-export default SoundBoardPage;
+export default SoundboardPage;
