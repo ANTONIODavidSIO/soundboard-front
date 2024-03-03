@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Soundboard from '../components/sounboard/Soundboard';
 
 const SoundboardPage = () => {
   const [soundboards, setSoundboards] = useState([]);
-  const [fileInput, setFileInput] = useState(null);
+  const fileInput = useRef(null);
 
   useEffect(() => {
     axios.get('http://localhost:5000/api/soundboards')
@@ -16,27 +16,28 @@ const SoundboardPage = () => {
       });
   }, []);
 
-  
-
   const handleAddSoundboard = () => {
-    const formData = new FormData();
-    console.log(fileInput)
-    formData.append('file', fileInput.current.files[0]);
+    if (fileInput.current && fileInput.current.files.length > 0) {
+      const formData = new FormData();
+      formData.append('file', fileInput.current.files[0]);
 
-    axios.post('localhost:5000/api/soundboards', formData)
-      .then((res) => {
-        // Mettre à jour l'état des soundboards
-        setSoundboards([...soundboards, res.data]);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+      axios.post('http://localhost:5000/api/soundboards', formData)
+        .then((res) => {
+          // Mettre à jour l'état des soundboards
+          setSoundboards([...soundboards, res.data]);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      console.log("Aucun fichier sélectionné.");
+    }
   };
 
   const handleDeleteSoundboard = (index) => {
     const soundboardId = soundboards[index]._id;
 
-    axios.delete(`localhost:5000/api/soundboards/${soundboardId}`)
+    axios.delete(`http://localhost:5000/api/soundboards/${soundboardId}`)
       .then(() => {
         // Mettre à jour l'état des soundboards
         const updatedSoundboards = [...soundboards];
