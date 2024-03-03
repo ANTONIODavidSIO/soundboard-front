@@ -19,8 +19,10 @@ const SoundboardPage = () => {
   const handleAddSoundboard = () => {
     if (fileInput.current && fileInput.current.files.length > 0) {
       const formData = new FormData();
-      formData.append('file', fileInput.current.files[0]);
-
+      const file = fileInput.current.files[0];
+      formData.append('file', file);
+      formData.append('name', file.name); // Utiliser le nom du fichier comme nom de la soundboard
+  
       axios.post('http://localhost:5000/api/soundboards', formData)
         .then((res) => {
           // Mettre à jour l'état des soundboards
@@ -33,6 +35,8 @@ const SoundboardPage = () => {
       console.log("Aucun fichier sélectionné.");
     }
   };
+  
+  
 
   const handleDeleteSoundboard = (index) => {
     const soundboardId = soundboards[index]._id;
