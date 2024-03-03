@@ -7,7 +7,7 @@ const SoundboardPage = () => {
   const [fileInput, setFileInput] = useState(null);
 
   useEffect(() => {
-    axios.get('localhost:5000/api/soundboards')
+    axios.get('http://localhost:5000/api/soundboards')
       .then((res) => {
         setSoundboards(res.data);
       })
@@ -16,8 +16,11 @@ const SoundboardPage = () => {
       });
   }, []);
 
+  
+
   const handleAddSoundboard = () => {
     const formData = new FormData();
+    console.log(fileInput)
     formData.append('file', fileInput.current.files[0]);
 
     axios.post('localhost:5000/api/soundboards', formData)
