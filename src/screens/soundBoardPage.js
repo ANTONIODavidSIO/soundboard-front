@@ -35,8 +35,6 @@ const SoundboardPage = () => {
       console.log("Aucun fichier sélectionné.");
     }
   };
-  
-  
 
   const handleDeleteSoundboard = (index) => {
     const soundboardId = soundboards[index]._id;
@@ -53,6 +51,11 @@ const SoundboardPage = () => {
       });
   };
 
+  const handleKeyBind = (id, key) => {
+    // Logique pour lier une touche de raccourci à un son
+    console.log(`Touche de raccourci ${key} liée à la soundboard avec l'ID ${id}`);
+  };
+
   return (
     <div>
       <h1>Soundboard</h1>
@@ -62,6 +65,7 @@ const SoundboardPage = () => {
             <Soundboard
               soundboard={soundboard}
               onDelete={() => handleDeleteSoundboard(index)}
+              onKeyBind={handleKeyBind}
             />
           </li>
         ))}
