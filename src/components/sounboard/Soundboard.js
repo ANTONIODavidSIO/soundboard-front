@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 
 const Soundboard = ({ soundboard, onDelete, onKeyBind }) => {
   const [volume, setVolume] = useState(100);
@@ -7,11 +6,9 @@ const Soundboard = ({ soundboard, onDelete, onKeyBind }) => {
 
   const handlePlay = async () => {
     try {
-      
-      const response = await axios.get(`http://localhost:5000/api/soundboards/${soundboard._id}`);
-      const audioUrl = response.data.file;
-     
-      const audio = new Audio(audioUrl);
+    console.log(`http://localhost:5000/${soundboard.file}`)
+    
+  const audio = new Audio(`http://localhost:5000/${soundboard.file}`);
     
       audio.volume = volume / 100;
  
